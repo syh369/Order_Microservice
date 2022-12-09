@@ -8,10 +8,11 @@ PATCH item info: update/<item_id>
 
 from database_services.rdb_services import RDBService
 
+
 class OrderInfoResource:
 
     @classmethod
-    def create_order_new(cls, email, shipping_info, billing_info):
+    def add_order_new(cls, email, shipping_info, billing_info):
         res = RDBService.add_by_prefix(
             db_schema="f22_orders",
             table_name="order",
@@ -21,13 +22,15 @@ class OrderInfoResource:
         return res
 
     @classmethod
-    def add_order_line(cls, orderid, itemid, price, amount, subtotal):
-        res = RDBService.add_by_prefix(
+    def add_orderline_item(cls, orderid, itemid, price, amount):
+        new_lineid = RDBService.add_by_prefix_orderline(
             db_schema="f22_orders",
             table_name="orderline",
             column_names=["orderid", "itemid", "price", "amount", "subtotal"],
-            values=[orderid, itemid, price, amount, subtotal]
+            # calculate subtotal by given price and amount
+            values=[orderid, itemid, price, amount, price * amount]
         )
+        return new_lineid
 
     @classmethod
     def get_order_by_id(cls, orderid):
@@ -41,7 +44,7 @@ class OrderInfoResource:
         print(r1)
         print('order_line:')
         print(r2)
-        result = {'orderinfo':r1[0], 'orderline':r2}
+        result = {'orderinfo': r1[0], 'orderline': r2}
         return result
 
     @classmethod
@@ -56,6 +59,7 @@ class OrderInfoResource:
     @classmethod
     def delete_order_by_id(cls, orderid):
         RDBService.delete_by_value("f22_orders", "orderline", "order", "orderid", "orderid", orderid)
+
 
 '''
     @classmethod
