@@ -45,13 +45,11 @@ class RDBService:
         conn = cls._get_db_connection()
         cur = conn.cursor()
 
-        # sql = "select * from {}.{} where {} = {}".format(db_schema,table_name,column_name,)
         sql = "select * from " + db_schema + "." + table_name + " where " + \
-              column_name + " = " + str(value)
-        print("SQL Statement = " + cur.mogrify(sql, None))
+              column_name + " = %s"
+        print("SQL Statement = " + cur.mogrify(sql, value))
 
-        res = cur.execute(sql)
-        # res = cur.fetchone()
+        cur.execute(sql, args=value)
         res = cur.fetchall()
 
         conn.close()
@@ -59,43 +57,51 @@ class RDBService:
         return res
 
     @classmethod
-    def delete_by_value(cls, db_schema, table_name, column_name, value):
+    def delete_by_value(cls, db_schema, table_name1, table_name2,
+                        column_name1, column_name2, value):
+        """
+        :return: successful or not
+        """
         conn = cls._get_db_connection()
-        cur = conn.cursor()
+        sql1 = "delete from " + db_schema + "." + table_name1 + " where " + \
+               column_name1 + " = " + "%s"
+        sql2 = "delete from " + db_schema + "." + table_name2 + " where " + \
+               column_name2 + " = " + "%s"
 
-        sql = "delete from " + db_schema + "." + table_name + " where " + \
-              column_name + " = " + str(value)
-        print("SQL Statement = " + cur.mogrify(sql, None))
-
-        res = cur.execute(sql)
-        print(res)
-        res = cur.fetchall()
-        conn.commit()
+        try:
+            cur = conn.cursor()
+            print("SQL Statement = " + cur.mogrify(sql1, value))
+            print("SQL Statement = " + cur.mogrify(sql2, value))
+            cur.execute(sql1, args=value)
+            cur.execute(sql2, args=value)
+        except UserWarning:
+            conn.rollback()
+            conn.close()
+            return False
+        else:
+            conn.commit()
+            conn.close()
+            return True
 
     @classmethod
-    def add_by_prefix(cls, db_schema, table_name, column_names, values):
+    def add_by_prefix(cls, db_schema, table_name1, column_names1, values1):
         conn = cls._get_db_connection()
-        cur = conn.cursor()
 
-        sql = " INSERT INTO " + db_schema + "." + table_name + " ("
-        for i in range(len(column_names) - 1):
-            sql += (column_names[i] + ", ")
-        sql += (column_names[-1] + ")")
-
-        sql += " values ("
-        for i in range(len(values) - 1):
-            sql += ("'" + str(values[i]) + "'" + ", ")
-        sql += ("'" + str(values[-1]) + "'" + ");")
-
-        print("SQL Statement = " + cur.mogrify(sql, None))
-
-        res = cur.execute(sql)
-        res = cur.fetchall()
-        conn.commit()
-        print(res)
-        conn.close()
-
-        return res
+        sql1 = " INSERT INTO " + db_schema + "." + table_name1 + " (" + ",".join(column_names1) + ")"
+        sql1 += (" values (" + ",".join(len(column_names1) * ["%s"]) + ")")
+        try:
+            cur = conn.cursor()
+            print("SQL Statement = " + cur.mogrify(sql1, values1))
+            cur.execute(sql1, args=values1)
+            inserted_id = cur.fetchone()['last_inserted_id()']
+        except UserWarning:
+            conn.rollback()
+            conn.close()
+            return False
+        else:
+            conn.commit()
+            conn.close()
+            return inserted_id
 
     @classmethod
     def update_by_template(cls, db_schema, table_name, column_name, value_prefix, update_column, value_update):

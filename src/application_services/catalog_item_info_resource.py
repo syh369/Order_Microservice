@@ -8,24 +8,40 @@ PATCH item info: update/<item_id>
 
 from database_services.rdb_services import RDBService
 
-
 class OrderInfoResource:
+
     @classmethod
-    def get_order_by_id(cls, orderID):
-        """
-        :param orderID: id of order
-        :return: a dic of the order (order information includes all the line)
-        """
-        result = RDBService.find_by_template_join(
+    def create_order_new(cls, email, shipping_info, billing_info):
+        res = RDBService.add_by_prefix(
             db_schema="f22_orders",
-            table_name1="order",
-            table_name2="orderline",
-            column_names1=["orderid", "email", "order_date", "total", "shipping_info", "billing_info"],
-            column_names2=["orderid", "lineid", "itemid", "price", "amount", "subtotal"],
-            template=None,
-            join_column1="orderid",
-            join_column2="orderid"
+            table_name="order",
+            column_names=["email", "shipping_info", "billing_info"],
+            values=[email, shipping_info, billing_info]
         )
+        return res
+
+    @classmethod
+    def add_order_line(cls, orderid, itemid, price, amount, subtotal):
+        res = RDBService.add_by_prefix(
+            db_schema="f22_orders",
+            table_name="orderline",
+            column_names=["orderid", "itemid", "price", "amount", "subtotal"],
+            values=[orderid, itemid, price, amount, subtotal]
+        )
+
+    @classmethod
+    def get_order_by_id(cls, orderid):
+        """
+        :param orderid: order id
+        :return: a dic of the order info
+        """
+        r1 = RDBService.get_by_value("f22_orders", "order", "orderid", orderid)
+        r2 = RDBService.get_by_value("f22_orders", "orderline", "orderid", orderid)
+        print('order:')
+        print(r1)
+        print('order_line:')
+        print(r2)
+        result = {'orderinfo':r1[0], 'orderline':r2}
         return result
 
     @classmethod
@@ -34,13 +50,12 @@ class OrderInfoResource:
         :param email: customer registration info email
         :return: a dic of the order
         """
-        result = RDBService.get_by_value("f22_orders", "orderline", "email", email)
+        result = RDBService.get_by_value("f22_orders", "order", "email", email)
         return result
 
     @classmethod
     def delete_order_by_id(cls, orderid):
-        RDBService.delete_by_value("f22_orders", "order", "orderid", orderid)
-        RDBService.delete_by_value("f22_orders", "orderline", "orderid", orderid)
+        RDBService.delete_by_value("f22_orders", "orderline", "order", "orderid", "orderid", orderid)
 
 '''
     @classmethod

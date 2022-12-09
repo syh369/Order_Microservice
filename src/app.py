@@ -13,6 +13,9 @@ def index():
     }
     return jsonify(context)
 
+#@app.route("/order", methods=["POST"])
+#def create_order_new()
+
 @app.route("/order/<int:orderid>", methods=["GET"])
 def get_order_by_id(orderid):
     result = OrderInfoResource.get_order_by_id(orderid)
@@ -22,7 +25,7 @@ def get_order_by_id(orderid):
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
 
-@app.route("/order/<str:email>", methods=["GET"])
+@app.route("/order/<string:email>", methods=["GET"])
 def get_order_by_email(email):
     result = OrderInfoResource.get_order_by_email(email)
     if result:
@@ -31,9 +34,9 @@ def get_order_by_email(email):
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
 
-@app.route("/catalog/delete/<int:item_id>", methods=["DELETE"])
-def delete_item_by_id(item_id):
-    OrderInfoResource.delete_item_by_id(item_id)
+@app.route("/order/<int:orderid>", methods=["DELETE"])
+def delete_order_by_id(orderid):
+    OrderInfoResource.delete_order_by_id(orderid)
 
     rsp = Response("", status=200, content_type="application/json")
     return rsp
