@@ -29,7 +29,7 @@ class Context:
             db_info = {
                 "host": "localhost",
                 "user": "root",
-                "password": "dbuserbdbuser", # OR use dbuserdbuser.
+                "password": "dbuserbdbuser",  # OR use dbuserdbuser.
                 "cursorclass": pymysql.cursors.DictCursor
             }
 

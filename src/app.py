@@ -4,6 +4,7 @@ from application_services.catalog_item_info_resource import OrderInfoResource
 
 app = Flask(__name__)
 
+
 @app.route("/", methods=["GET"])
 def index():
     context = {
@@ -13,17 +14,43 @@ def index():
     }
     return jsonify(context)
 
+
 @app.route("/order", methods=["POST"])
-def create_order_new():
+def add_order_new():
     data = json.loads(request.data)
-    new_order_id = OrderInfoResource.create_order_new(
+    new_order_id = OrderInfoResource.add_order_new(
         email=data["email"],
-        shipping_info=data["email"]
-
+        shipping_info=data["shipping_info"],
+        billing_info=data["billing_info"]
     )
+    if new_order_id:
+        order = OrderInfoResource.get_order_by_id(new_order_id)
+        rsp = jsonify(order)
+        # rsp = Response(json.dumps({"message": "new item added"}), status=200, content_type="application/json")
+    else:
+        rsp = Response(json.dumps({"message": "item creation failed"}), status=500, content_type="application/json")
+    return rsp
 
-@app.route("/order/<int:orderid>/orderline")
-def add_orderline()
+
+@app.route("/order/<int:orderid>/orderline", methods=["POST"])
+def add_orderline_item(orderid):
+    data = json.loads(request.data)
+    new_lineid = OrderInfoResource.add_orderline_item(
+        orderid=orderid,
+        itemid=data["itemid"],
+        price=data["price"],
+        amount=data["amount"]
+    )
+    if new_lineid:
+        orderline = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+        for item in orderline:
+            if item["lineid"] == new_lineid:
+                return jsonify(item)
+    else:
+        rsp = Response(json.dumps({"message": "can/t add item to orderline failed"}),
+                       status=500, content_type="application/json")
+    return rsp
+
 
 @app.route("/order/<int:orderid>", methods=["GET"])
 def get_order_by_id(orderid):
@@ -34,6 +61,16 @@ def get_order_by_id(orderid):
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
 
+
+@app.route("/order/<int:orderid>/orderline/<int:lineid>")
+def get_orderline_by_id(orderid, lineid):
+    orderline = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+    for item in orderline:
+        if item["lineid"] == lineid:
+            return jsonify(item)
+    return Response("NOT FOUND", status=404, content_type="text/plain")
+
+
 @app.route("/order/<string:email>", methods=["GET"])
 def get_order_by_email(email):
     result = OrderInfoResource.get_order_by_email(email)
@@ -43,12 +80,14 @@ def get_order_by_email(email):
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
 
+
 @app.route("/order/<int:orderid>", methods=["DELETE"])
 def delete_order_by_id(orderid):
     OrderInfoResource.delete_order_by_id(orderid)
 
     rsp = Response("", status=200, content_type="application/json")
     return rsp
+
 
 '''
 @app.route("/order", methods="GET")

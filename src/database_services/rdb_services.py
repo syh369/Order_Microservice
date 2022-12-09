@@ -84,16 +84,17 @@ class RDBService:
             return True
 
     @classmethod
-    def add_by_prefix(cls, db_schema, table_name1, column_names1, values1):
+    def add_by_prefix(cls, db_schema, table_name, column_names, values):
         conn = cls._get_db_connection()
 
-        sql1 = " INSERT INTO " + db_schema + "." + table_name1 + " (" + ",".join(column_names1) + ")"
-        sql1 += (" values (" + ",".join(len(column_names1) * ["%s"]) + ")")
+        sql1 = " INSERT INTO " + db_schema + "." + table_name + " (" + ",".join(column_names) + ")"
+        sql1 += (" values (" + ",".join(len(column_names) * ["%s"]) + ")")
         try:
             cur = conn.cursor()
-            print("SQL Statement = " + cur.mogrify(sql1, values1))
-            cur.execute(sql1, args=values1)
-            inserted_id = cur.fetchone()['last_inserted_id()']
+            print("SQL Statement = " + cur.mogrify(sql1, values))
+            cur.execute(sql1, args=values)
+            cur.execute("select last_insert_id()", args=None)
+            inserted_id = cur.fetchone()["last_insert_id()"]
         except UserWarning:
             conn.rollback()
             conn.close()
@@ -102,6 +103,36 @@ class RDBService:
             conn.commit()
             conn.close()
             return inserted_id
+
+    @classmethod
+    def add_by_prefix_orderline(cls, db_schema, table_name, column_names, values):
+        conn = cls._get_db_connection()
+
+        try:
+            cur = conn.cursor()
+
+            sql_get_next_id = "select ifnull(max(lineid), 0) + 1  as new_lineid from f22_orders.orderline where orderid = %s"
+            # value[0] is the orderid
+            print("SQL Statement = " + cur.mogrify(sql_get_next_id, values[0]))
+            cur.execute(sql_get_next_id, args=values[0])
+            new_lineid = cur.fetchone()["new_lineid"]
+
+            column_names.append("lineid")
+            values.append(new_lineid)
+            print("column_names", column_names)
+
+            sql1 = " INSERT INTO " + db_schema + "." + table_name + " (" + ",".join(column_names) + ")"
+            sql1 += (" values (" + ",".join(len(column_names) * ["%s"]) + ")")
+            print("SQL Statement = " + cur.mogrify(sql1, values))
+            cur.execute(sql1, args=values)
+        except UserWarning:
+            conn.rollback()
+            conn.close()
+            return False
+        else:
+            conn.commit()
+            conn.close()
+            return new_lineid
 
     @classmethod
     def update_by_template(cls, db_schema, table_name, column_name, value_prefix, update_column, value_update):
