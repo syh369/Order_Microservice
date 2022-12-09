@@ -13,8 +13,17 @@ def index():
     }
     return jsonify(context)
 
-#@app.route("/order", methods=["POST"])
-#def create_order_new()
+@app.route("/order", methods=["POST"])
+def create_order_new():
+    data = json.loads(request.data)
+    new_order_id = OrderInfoResource.create_order_new(
+        email=data["email"],
+        shipping_info=data["email"]
+
+    )
+
+@app.route("/order/<int:orderid>/orderline")
+def add_orderline()
 
 @app.route("/order/<int:orderid>", methods=["GET"])
 def get_order_by_id(orderid):
