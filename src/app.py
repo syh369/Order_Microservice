@@ -47,9 +47,8 @@ def add_orderline_item(orderid):
             if item["lineid"] == new_lineid:
                 return jsonify(item)
     else:
-        rsp = Response(json.dumps({"message": "can/t add item to orderline failed"}),
-                       status=500, content_type="application/json")
-    return rsp
+        return Response(json.dumps({"message": "can/t add item to orderline failed"}),
+                        status=500, content_type="application/json")
 
 
 @app.route("/order/<int:orderid>", methods=["GET"])
