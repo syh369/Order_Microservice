@@ -33,19 +33,20 @@ class OrderInfoResource:
         return new_lineid
 
     @classmethod
-    def get_order_by_id(cls, orderid):
+    def get_order_by_id(cls, orderid, pg_dict):
         """
+        :param pg_dict:
         :param orderid: order id
         :return: a dic of the order info
         """
-        r1 = RDBService.get_by_value("f22_orders", "order", "orderid", orderid)
-        r2 = RDBService.get_by_value("f22_orders", "orderline", "orderid", orderid)
+        r1, _ = RDBService.get_by_value("f22_orders", "order", "orderid", [orderid], {"pg_flag": False})
+        r2, num_of_rows = RDBService.get_by_value("f22_orders", "orderline", "orderid", [orderid], pg_dict)
         print('order:')
         print(r1)
         print('order_line:')
         print(r2)
         result = {'orderinfo': r1[0], 'orderline': r2}
-        return result
+        return result, num_of_rows
 
     @classmethod
     def get_order_by_email(cls, email, pg_dict):

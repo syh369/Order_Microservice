@@ -1,7 +1,7 @@
 from flask import Flask, Response, request, jsonify, json
 
 from application_services.catalog_item_info_resource import OrderInfoResource
-from utils import wrap_pagination, wrap_link
+from utils import wrap_pagination, wrap_link, wrap_pg_dict
 
 app = Flask(__name__)
 
@@ -54,17 +54,23 @@ def add_orderline_item(orderid):
 
 @app.route("/order/<int:orderid>", methods=["GET"])
 def get_order_by_id(orderid):
-    result = OrderInfoResource.get_order_by_id(orderid)
+    page, pagesize = request.args.get("page", type=int), request.args.get("pagesize", type=int)
+    page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
+    result, num_of_rows = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+    result["orderline"] = wrap_pagination(result["orderline"], pagesize, page, num_of_rows)
     if result:
+        print(result)
         rsp = jsonify(result)
     else:
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
 
 
+# TODO: fix this, check the return of get_order_by_id
 @app.route("/order/<int:orderid>/orderline/<int:lineid>")
 def get_orderline_by_id(orderid, lineid):
-    orderline = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+    _, _, pg_dict = wrap_pg_dict(enable=None)
+    orderline, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)["orderline"]
     for item in orderline:
         if item["lineid"] == lineid:
             return jsonify(item)
@@ -73,19 +79,10 @@ def get_orderline_by_id(orderid, lineid):
 
 @app.route("/order/<string:email>", methods=["GET"])
 def get_order_by_email(email):
-    page = request.args.get("page", type=int)
-    pagesize = request.args.get("pagesize", type=int)
-    if not page:
-        page = 1
-    if not pagesize:
-        pagesize = 10
-    limit, offset = pagesize, (page - 1) * pagesize
-    pg_dict = {"limit": limit,
-               "offset": offset,
-               "pg_flag": True}
+    page, pagesize = request.args.get("page", type=int), request.args.get("pagesize", type=int)
+    page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
     results, num_of_rows = OrderInfoResource.get_order_by_email(email, pg_dict)
     if num_of_rows:
-        print("results:", results)
         rsp = jsonify(wrap_pagination(results, pagesize, page, num_of_rows))
     else:
         rsp = Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
