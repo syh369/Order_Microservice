@@ -50,12 +50,12 @@ class OrderInfoResource:
     @classmethod
     def get_order_by_email(cls, email, pg_dict):
         """
+        :param pg_dict: for pagination
         :param email: customer registration info email
         :return: a dic of the order
         """
-        email = [email]
-        result = RDBService.get_by_value("f22_orders", "order", "email", email, pg_dict)
-        return result
+        result, num_of_rows = RDBService.get_by_value("f22_orders", "order", "email", [email], pg_dict)
+        return result, num_of_rows
 
     @classmethod
     def update_order_by_id(cls, orderid, new_data: dict):
@@ -65,10 +65,10 @@ class OrderInfoResource:
         row_affected = 0
         if set_orderinfo_list:
             row_affected = RDBService.update_by_value(db_schema="f22_orders",
-                                                       table_name="order",
-                                                       column_name="orderid",
-                                                       value=orderid,
-                                                       update_columns=set_orderinfo_list)
+                                                      table_name="order",
+                                                      column_name="orderid",
+                                                      value=orderid,
+                                                      update_columns=set_orderinfo_list)
         if row_affected == 0:
             return False
         else:
@@ -96,12 +96,13 @@ class OrderInfoResource:
         res = RDBService.delete_by_value("f22_orders", "orderline", "order", "orderid", "orderid", orderid)
         return res
 
-
     @classmethod
     def delete_orderline_by_id(cls, orderid, lineid):
         id_list = [orderid, lineid]
         res = RDBService.delete_by_value_single_table("f22_orders", "orderline", "orderid", "lineid", id_list)
         return res
+
+
 '''
     @classmethod
     def delete_line_by_id(cls, orderid, lineid):

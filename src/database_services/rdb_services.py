@@ -33,7 +33,7 @@ class RDBService:
               column_name + " like " + "'" + value_prefix + "%'"
         print("SQL Statement = " + cur.mogrify(sql, None))
 
-        res = cur.execute(sql)
+        cur.execute(sql)
         res = cur.fetchall()
 
         conn.close()
@@ -45,21 +45,23 @@ class RDBService:
         conn = cls._get_db_connection()
         cur = conn.cursor()
 
-        sql = "select * from " + db_schema + "." + table_name + " where " + \
-              column_name + " = %s"
-        if pg_dict["pg_flag"] != False:
-            sql += " limit " + "%s" + " offset " + "%s"
-            value.append(pg_dict["limit"])
-            value.append(pg_dict["offset"])
-            print(value)
+        # calculate all rows fitting the where clause
+        sql = "select count(*) from " + db_schema + "." + table_name + " where " + column_name + " =%s "
         print("SQL Statement = " + cur.mogrify(sql, value))
+        cur.execute(sql, args=value)
+        num_of_rows = cur.fetchone()["count(*)"]
 
+        sql = "select * from " + db_schema + "." + table_name + " where " + column_name + " =%s "
+        if pg_dict["pg_flag"]:
+            sql += " limit " + "%s" + " offset " + "%s"
+            value.extend([pg_dict["limit"], pg_dict["offset"]])
+        print("SQL Statement = " + cur.mogrify(sql, value))
         cur.execute(sql, args=value)
         res = cur.fetchall()
 
         conn.close()
 
-        return res
+        return res, num_of_rows
 
     @classmethod
     def delete_by_value_single_table(cls, db_schema, table_name, column_name1, column_name2, value):
@@ -68,7 +70,7 @@ class RDBService:
         """
         conn = cls._get_db_connection()
         sql = "delete from " + db_schema + "." + table_name + " where " + \
-               column_name1 + " = " + "%s" + " AND " + column_name2 + " = " + "%s"
+              column_name1 + " = " + "%s" + " AND " + column_name2 + " = " + "%s"
         try:
             cur = conn.cursor()
             print("SQL Statement = " + cur.mogrify(sql, value))
@@ -137,7 +139,8 @@ class RDBService:
         try:
             cur = conn.cursor()
 
-            sql_get_next_id = "select ifnull(max(lineid), 0) + 1  as new_lineid from f22_orders.orderline where orderid = %s"
+            sql_get_next_id = "select ifnull(max(lineid), 0) + 1  as new_lineid from f22_orders.orderline where " \
+                              "orderid = %s "
             # value[0] is the orderid
             print("SQL Statement = " + cur.mogrify(sql_get_next_id, values[0]))
             cur.execute(sql_get_next_id, args=values[0])
@@ -170,8 +173,8 @@ class RDBService:
               " set " + str(update_column) + " = '" + str(value_update) + "' where " + column_name + ' = ' \
               + str(value_prefix)
         print("SQL Statement = " + cur.mogrify(sql, None))
-        res = cur.execute(sql)
-        res = cur.fetchall()
+        cur.execute(sql)
+        cur.fetchall()
         conn.commit()
 
     @classmethod
@@ -227,7 +230,7 @@ class RDBService:
         cur = conn.cursor()
 
         sql = "select " + ", ".join(column_name) + "from " + db_schema + "." + table_name + " " + wc
-        res = cur.execute(sql, args=args)
+        cur.execute(sql, args=args)
         res = cur.fetchall()
 
         conn.close()
@@ -257,13 +260,13 @@ class RDBService:
               table_name1 + "." + join_column1 + " = " + table_name2 + "." + join_column2 + " " + wc
         print("SQL Statement = " + cur.mogrify(sql, None))
 
-        res = cur.execute(sql, args=args)
+        cur.execute(sql, args=args)
         res = cur.fetchall()
 
         conn.close()
 
         return res
-    
+
     """
     # def put_by_template(db_schema, table_name, template, id, name, field_list):
     #     print(id, name)

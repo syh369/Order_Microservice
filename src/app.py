@@ -1,6 +1,7 @@
 from flask import Flask, Response, request, jsonify, json
 
 from application_services.catalog_item_info_resource import OrderInfoResource
+from utils import wrap_pagination, wrap_link
 
 app = Flask(__name__)
 
@@ -74,18 +75,22 @@ def get_orderline_by_id(orderid, lineid):
 def get_order_by_email(email):
     page = request.args.get("page", type=int)
     pagesize = request.args.get("pagesize", type=int)
-    if not page: page = 1
-    if not pagesize: pagesize = 10
-    limit, offset = pagesize, (page-1)*pagesize
+    if not page:
+        page = 1
+    if not pagesize:
+        pagesize = 10
+    limit, offset = pagesize, (page - 1) * pagesize
     pg_dict = {"limit": limit,
                "offset": offset,
                "pg_flag": True}
-    result = OrderInfoResource.get_order_by_email(email, pg_dict)
-    if result:
-        rsp = jsonify(result)
+    results, num_of_rows = OrderInfoResource.get_order_by_email(email, pg_dict)
+    if num_of_rows:
+        print("results:", results)
+        rsp = jsonify(wrap_pagination(results, pagesize, page, num_of_rows))
     else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+        rsp = Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     return rsp
+
 
 @app.route("/order/<int:orderid>", methods=["PUT"])
 def update_order_by_id(orderid):
@@ -99,6 +104,7 @@ def update_order_by_id(orderid):
     else:
         res = Response(json.dumps({"message": "same update"}), status=400, content_type="application/json")
     return res
+
 
 @app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["PUT"])
 def update_orderline_by_id(orderid, lineid):
@@ -117,6 +123,7 @@ def update_orderline_by_id(orderid, lineid):
         res = Response(json.dumps({"message": "same update"}), status=400, content_type="application/json")
     return res
 
+
 @app.route("/order/<int:orderid>", methods=["DELETE"])
 def delete_order_by_id(orderid):
     exist = OrderInfoResource.get_order_by_id(orderid)
@@ -124,10 +131,12 @@ def delete_order_by_id(orderid):
         return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     success = OrderInfoResource.delete_order_by_id(orderid)
     if success:
-        rsp = Response(json.dumps({"message": "order deletion successful"}), status=200, content_type="application/json")
+        rsp = Response(json.dumps({"message": "order deletion successful"}), status=200,
+                       content_type="application/json")
     else:
         rsp = Response(json.dumps({"message": "order deletion failed"}), status=500, content_type="application/json")
     return rsp
+
 
 @app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["DELETE"])
 def delete_orderline_by_id(orderid, lineid):
@@ -142,10 +151,12 @@ def delete_orderline_by_id(orderid, lineid):
         rsp = Response(json.dumps({"message": "orderline deletion successful"}), status=200,
                        content_type="application/json")
     else:
-        rsp = Response(json.dumps({"message": "orderline deletion failed"}), status=500, content_type="application/json")
+        rsp = Response(json.dumps({"message": "orderline deletion failed"}), status=500,
+                       content_type="application/json")
     return rsp
-    #if not lineid in ret_line["lineid"]:
+    # if not lineid in ret_line["lineid"]:
     #   return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
+
 
 '''
 @app.route("/order", methods="GET")
