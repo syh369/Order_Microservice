@@ -41,12 +41,17 @@ class RDBService:
         return res
 
     @classmethod
-    def get_by_value(cls, db_schema, table_name, column_name, value):
+    def get_by_value(cls, db_schema, table_name, column_name, value, pg_dict: dict):
         conn = cls._get_db_connection()
         cur = conn.cursor()
 
         sql = "select * from " + db_schema + "." + table_name + " where " + \
               column_name + " = %s"
+        if pg_dict["pg_flag"] != False:
+            sql += " limit " + "%s" + " offset " + "%s"
+            value.append(pg_dict["limit"])
+            value.append(pg_dict["offset"])
+            print(value)
         print("SQL Statement = " + cur.mogrify(sql, value))
 
         cur.execute(sql, args=value)

@@ -48,12 +48,13 @@ class OrderInfoResource:
         return result
 
     @classmethod
-    def get_order_by_email(cls, email):
+    def get_order_by_email(cls, email, pg_dict):
         """
         :param email: customer registration info email
         :return: a dic of the order
         """
-        result = RDBService.get_by_value("f22_orders", "order", "email", email)
+        email = [email]
+        result = RDBService.get_by_value("f22_orders", "order", "email", email, pg_dict)
         return result
 
     @classmethod

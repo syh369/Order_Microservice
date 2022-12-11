@@ -72,7 +72,15 @@ def get_orderline_by_id(orderid, lineid):
 
 @app.route("/order/<string:email>", methods=["GET"])
 def get_order_by_email(email):
-    result = OrderInfoResource.get_order_by_email(email)
+    page = request.args.get("page", type=int)
+    pagesize = request.args.get("pagesize", type=int)
+    if not page: page = 1
+    if not pagesize: pagesize = 10
+    limit, offset = pagesize, (page-1)*pagesize
+    pg_dict = {"limit": limit,
+               "offset": offset,
+               "pg_flag": True}
+    result = OrderInfoResource.get_order_by_email(email, pg_dict)
     if result:
         rsp = jsonify(result)
     else:
