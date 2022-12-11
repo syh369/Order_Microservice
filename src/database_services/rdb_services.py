@@ -57,6 +57,27 @@ class RDBService:
         return res
 
     @classmethod
+    def delete_by_value_single_table(cls, db_schema, table_name, column_name1, column_name2, value):
+        """
+        :return: successful or not
+        """
+        conn = cls._get_db_connection()
+        sql = "delete from " + db_schema + "." + table_name + " where " + \
+               column_name1 + " = " + "%s" + " AND " + column_name2 + " = " + "%s"
+        try:
+            cur = conn.cursor()
+            print("SQL Statement = " + cur.mogrify(sql, value))
+            cur.execute(sql, args=value)
+        except UserWarning:
+            conn.rollback()
+            conn.close()
+            return False
+        else:
+            conn.commit()
+            conn.close()
+            return True
+
+    @classmethod
     def delete_by_value(cls, db_schema, table_name1, table_name2,
                         column_name1, column_name2, value):
         """
@@ -148,8 +169,36 @@ class RDBService:
         res = cur.fetchall()
         conn.commit()
 
+    @classmethod
+    def update_by_value(cls, db_schema, table_name, column_name, value, update_columns: list):
+        """
+        :param column_name:
+        :param db_schema:
+        :param table_name:
+        :param value: the matched attribute's value
+        :param update_columns: the [(k,v)...] list
+        :return:
+        """
+        conn = cls._get_db_connection()
+        cur = conn.cursor()
+
+        li = []
+        for k, v in update_columns:
+            li.append(f"{k}='{v}'")
+
+        sql = " UPDATE " + db_schema + "." + table_name + " SET " + ", ".join(li) + " WHERE " + column_name + "=%s"
+        print("SQL Statement = " + cur.mogrify(sql, value))
+
+        cur.execute(sql, args=value)
+        conn.commit()
+        row_affected = cur.rowcount
+        print("row_affected:", row_affected)
+        conn.close()
+
+        return row_affected
+
     @staticmethod
-    def _get_where_clause_args(template):
+    def _get_where_clause_args(template: dict):
         terms = []
         args = []
 

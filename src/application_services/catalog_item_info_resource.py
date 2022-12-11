@@ -26,9 +26,9 @@ class OrderInfoResource:
         new_lineid = RDBService.add_by_prefix_orderline(
             db_schema="f22_orders",
             table_name="orderline",
-            column_names=["orderid", "itemid", "price", "amount", "subtotal"],
+            column_names=["orderid", "itemid", "price", "amount"],
             # calculate subtotal by given price and amount
-            values=[orderid, itemid, price, amount, price * amount]
+            values=[orderid, itemid, price, amount]
         )
         return new_lineid
 
@@ -57,10 +57,50 @@ class OrderInfoResource:
         return result
 
     @classmethod
+    def update_order_by_id(cls, orderid, new_data: dict):
+        set_orderinfo_list = []
+        for k, v in new_data.items():
+            set_orderinfo_list.append((k, v))
+        row_affected = 0
+        if set_orderinfo_list:
+            row_affected = RDBService.update_by_value(db_schema="f22_orders",
+                                                       table_name="order",
+                                                       column_name="orderid",
+                                                       value=orderid,
+                                                       update_columns=set_orderinfo_list)
+        if row_affected == 0:
+            return False
+        else:
+            return True
+
+    @classmethod
+    def update_orderline_by_id(cls, lineid, new_data: dict):
+        set_orderline_list = []
+        for k, v in new_data.items():
+            set_orderline_list.append((k, v))
+        row_affected = 0
+        if set_orderline_list:
+            row_affected = RDBService.update_by_value(db_schema="f22_orders",
+                                                      table_name="orderline",
+                                                      column_name="lineid",
+                                                      value=lineid,
+                                                      update_columns=set_orderline_list)
+        if row_affected == 0:
+            return False
+        else:
+            return True
+
+    @classmethod
     def delete_order_by_id(cls, orderid):
-        RDBService.delete_by_value("f22_orders", "orderline", "order", "orderid", "orderid", orderid)
+        res = RDBService.delete_by_value("f22_orders", "orderline", "order", "orderid", "orderid", orderid)
+        return res
 
 
+    @classmethod
+    def delete_orderline_by_id(cls, orderid, lineid):
+        id_list = [orderid, lineid]
+        res = RDBService.delete_by_value_single_table("f22_orders", "orderline", "orderid", "lineid", id_list)
+        return res
 '''
     @classmethod
     def delete_line_by_id(cls, orderid, lineid):

@@ -79,14 +79,65 @@ def get_order_by_email(email):
         rsp = Response("NOT FOUND", status=404, content_type="text/plain")
     return rsp
 
+@app.route("/order/<int:orderid>", methods=["PUT"])
+def update_order_by_id(orderid):
+    new_data = json.loads(request.data)
+    exist = OrderInfoResource.get_order_by_id(orderid)
+    if not exist:
+        return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
+    success = OrderInfoResource.update_order_by_id(orderid, new_data)
+    if success:
+        res = OrderInfoResource.get_order_by_id(orderid)
+    else:
+        res = Response(json.dumps({"message": "same update"}), status=400, content_type="application/json")
+    return res
+
+@app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["PUT"])
+def update_orderline_by_id(orderid, lineid):
+    new_data = json.loads(request.data)
+    exist = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+    print(exist)
+    lineid_list = []
+    for line in exist:
+        lineid_list.append(line["lineid"])
+    if lineid not in lineid_list:
+        return Response(json.dumps({"message": "orderline not found"}), status=404, content_type="application/json")
+    success = OrderInfoResource.update_orderline_by_id(lineid, new_data)
+    if success:
+        res = OrderInfoResource.get_order_by_id(orderid)
+    else:
+        res = Response(json.dumps({"message": "same update"}), status=400, content_type="application/json")
+    return res
 
 @app.route("/order/<int:orderid>", methods=["DELETE"])
 def delete_order_by_id(orderid):
-    OrderInfoResource.delete_order_by_id(orderid)
-
-    rsp = Response("", status=200, content_type="application/json")
+    exist = OrderInfoResource.get_order_by_id(orderid)
+    if not exist:
+        return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
+    success = OrderInfoResource.delete_order_by_id(orderid)
+    if success:
+        rsp = Response(json.dumps({"message": "order deletion successful"}), status=200, content_type="application/json")
+    else:
+        rsp = Response(json.dumps({"message": "order deletion failed"}), status=500, content_type="application/json")
     return rsp
 
+@app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["DELETE"])
+def delete_orderline_by_id(orderid, lineid):
+    ret_line = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+    lineid_list = []
+    for line in ret_line:
+        lineid_list.append(line["lineid"])
+    if lineid not in lineid_list:
+        return Response(json.dumps({"message": "orderline not found"}), status=404, content_type="application/json")
+    success = OrderInfoResource.delete_orderline_by_id(orderid, lineid)
+    if success:
+        rsp = Response(json.dumps({"message": "orderline deletion successful"}), status=200,
+                       content_type="application/json")
+    else:
+        rsp = Response(json.dumps({"message": "orderline deletion failed"}), status=500, content_type="application/json")
+    return rsp
+    #if not lineid in ret_line["lineid"]:
+    #   return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
 
 '''
 @app.route("/order", methods="GET")
