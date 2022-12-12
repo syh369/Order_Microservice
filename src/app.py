@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, jsonify, json
+from flask import Flask, Response, request, jsonify, json, url_for
 
 from application_services.catalog_item_info_resource import OrderInfoResource
 from utils import wrap_pagination, wrap_link, wrap_pg_dict
@@ -78,9 +78,12 @@ def get_orderline_by_id(orderid, lineid):
         orderline = orderinfo["orderline"]
     else:
         return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
-    for item in orderline:
-        if item["lineid"] == lineid:
-            return jsonify(item)
+    for line in orderline:
+        if line["lineid"] == lineid:
+            line["links"] = list()
+            line["links"].append(wrap_link(url_for("get_order_by_id", orderid=line["orderid"]), "order"))
+            line["links"].append(wrap_link(url_for("get_orderline_by_id", orderid=line["orderid"], lineid=line["lineid"]), "self"))
+            return jsonify(line)
     return Response(json.dumps({"message": "order line not found"}), status=404, content_type="application/json")
 
 
@@ -90,6 +93,10 @@ def get_order_by_email(email):
     page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
     results, num_of_rows = OrderInfoResource.get_order_by_email(email, pg_dict)
     if num_of_rows:
+        for res in results:
+            res["links"] = list()
+            res["links"].append(wrap_link(url_for("get_order_by_id", orderid=res["orderid"]), "order"))
+            res["links"].append(wrap_link(url_for("get_order_by_email", email=res["email"]), "self"))
         rsp = jsonify(wrap_pagination(results, pagesize, page, num_of_rows))
     else:
         rsp = Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
@@ -171,65 +178,6 @@ def delete_orderline_by_id(orderid, lineid):
 
 
 '''
-@app.route("/order", methods="GET")
-def get_post_items():
-    if request.method == "GET":
-        result = OrderInfoResource.get_items()
-        if result:
-            rsp = jsonify(result)
-        else:
-            rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-        return rsp
-
-@app.route("/orderinfo/<int:orderID>", methods=["GET"])
-def get_orderinfo_by_id(orderID):
-    result = OrderInfoResource.get_orderinfo_by_id(orderID)
-    if result:
-        rsp = jsonify(result)
-    else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-    return rsp
-
-@app.route("/catalog/<string:name>", methods=["GET"])
-def get_item_by_name(name):
-    result = CatalogItemInfoResource.get_item_by_name(name)
-    if result:
-        for item in result:
-            item["stock"] = CatalogItemInfoResource.get_item_stock_by_id(item["id"])["stock"]
-        rsp = jsonify(result)
-    else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-    return rsp
-
-
-@app.route("/catalog/stock/<int:item_id>", methods=["GET"])
-def get_item_stock_by_id(item_id):
-    result = CatalogItemInfoResource.get_item_stock_by_id(item_id)
-    if result:
-        rsp = jsonify(result["stock"])
-    else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
-    return rsp
-
-
-@app.route("/catalog/delete/<int:item_id>", methods=["DELETE"])
-def delete_item_by_id(item_id):
-    CatalogItemInfoResource.delete_item_by_id(item_id)
-    # Don't know how the packet forms yet
-    rsp = Response("", status=200, content_type="application/json")
-    return rsp
-
-
-@app.route("/catalog/update", methods=["PUT"])
-def update_item_by_id():
-    data = json.loads(request.data)
-    # print(data)
-    CatalogItemInfoResource.update_item_by_id(
-        item_id=data["item_id"],
-        update_column=data["update_column"],
-        value_update=data["value_update"])
-    rsp = Response("", status=200, content_type="application/json")
-    return rsp
 '''
 
 if __name__ == "__main__":
