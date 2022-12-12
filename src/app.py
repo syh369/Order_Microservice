@@ -61,8 +61,16 @@ def get_order_by_id(orderid):
     page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
     result, num_of_rows = OrderInfoResource.get_order_by_id(orderid, pg_dict)
     if result:
+        print("result")
         print(result)
+        # add links
+        for item in result["orderline"]:
+            item["links"] = list()
+            item["links"].append(wrap_link(url_for("get_order_by_id", orderid=item["orderid"]), "order"))
+            item["links"].append(wrap_link(url_for("get_orderline_by_id",
+                                                   orderid=item["orderid"], lineid=item["lineid"]), "self"))
         result["orderline"] = wrap_pagination(result["orderline"], pagesize, page, num_of_rows)
+
         rsp = jsonify(result)
     else:
         rsp = Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
