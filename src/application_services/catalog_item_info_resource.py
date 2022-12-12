@@ -45,7 +45,10 @@ class OrderInfoResource:
         print(r1)
         print('order_line:')
         print(r2)
-        result = {'orderinfo': r1[0], 'orderline': r2}
+        if r1:
+            result = {'orderinfo': r1[0], 'orderline': r2}
+        else:
+            result = None
         return result, num_of_rows
 
     @classmethod

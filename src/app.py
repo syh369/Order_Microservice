@@ -25,7 +25,8 @@ def add_order_new():
         billing_info=data["billing_info"]
     )
     if new_order_id:
-        order = OrderInfoResource.get_order_by_id(new_order_id)
+        _, _, pg_dict = wrap_pg_dict(enable=False)
+        order, _ = OrderInfoResource.get_order_by_id(new_order_id, pg_dict)
         rsp = jsonify(order)
         # rsp = Response(json.dumps({"message": "new item added"}), status=200, content_type="application/json")
     else:
@@ -43,7 +44,9 @@ def add_orderline_item(orderid):
         amount=data["amount"]
     )
     if new_lineid:
-        orderline = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+        _, _, pg_dict = wrap_pg_dict(enable=False)
+        orderinfo, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+        orderline = orderinfo["orderline"]
         for item in orderline:
             if item["lineid"] == new_lineid:
                 return jsonify(item)
@@ -57,24 +60,28 @@ def get_order_by_id(orderid):
     page, pagesize = request.args.get("page", type=int), request.args.get("pagesize", type=int)
     page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
     result, num_of_rows = OrderInfoResource.get_order_by_id(orderid, pg_dict)
-    result["orderline"] = wrap_pagination(result["orderline"], pagesize, page, num_of_rows)
     if result:
         print(result)
+        result["orderline"] = wrap_pagination(result["orderline"], pagesize, page, num_of_rows)
         rsp = jsonify(result)
     else:
-        rsp = Response("NOT FOUND", status=404, content_type="text/plain")
+        rsp = Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     return rsp
 
 
 # TODO: fix this, check the return of get_order_by_id
 @app.route("/order/<int:orderid>/orderline/<int:lineid>")
 def get_orderline_by_id(orderid, lineid):
-    _, _, pg_dict = wrap_pg_dict(enable=None)
-    orderline, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)["orderline"]
+    _, _, pg_dict = wrap_pg_dict(enable=False)
+    orderinfo, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+    if orderinfo:
+        orderline = orderinfo["orderline"]
+    else:
+        return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     for item in orderline:
         if item["lineid"] == lineid:
             return jsonify(item)
-    return Response("NOT FOUND", status=404, content_type="text/plain")
+    return Response(json.dumps({"message": "order line not found"}), status=404, content_type="application/json")
 
 
 @app.route("/order/<string:email>", methods=["GET"])
@@ -92,38 +99,44 @@ def get_order_by_email(email):
 @app.route("/order/<int:orderid>", methods=["PUT"])
 def update_order_by_id(orderid):
     new_data = json.loads(request.data)
-    exist = OrderInfoResource.get_order_by_id(orderid)
+    _, _, pg_dict = wrap_pg_dict(enable=False)
+    exist, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
     if not exist:
         return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     success = OrderInfoResource.update_order_by_id(orderid, new_data)
     if success:
-        res = OrderInfoResource.get_order_by_id(orderid)
+        _, _, pg_dict = wrap_pg_dict(enable=False)
+        res, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
     else:
-        res = Response(json.dumps({"message": "same update"}), status=400, content_type="application/json")
+        res = Response(json.dumps({"message": "same order update"}), status=400, content_type="application/json")
     return res
 
 
 @app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["PUT"])
 def update_orderline_by_id(orderid, lineid):
     new_data = json.loads(request.data)
-    exist = OrderInfoResource.get_order_by_id(orderid)["orderline"]
-    print(exist)
+    _, _, pg_dict = wrap_pg_dict(enable=False)
+    exist, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+    orderline = exist["orderline"]
+    print(orderline)
     lineid_list = []
-    for line in exist:
+    for line in orderline:
         lineid_list.append(line["lineid"])
     if lineid not in lineid_list:
         return Response(json.dumps({"message": "orderline not found"}), status=404, content_type="application/json")
     success = OrderInfoResource.update_orderline_by_id(lineid, new_data)
     if success:
-        res = OrderInfoResource.get_order_by_id(orderid)
+        _, _, pg_dict = wrap_pg_dict(enable=False)
+        res = OrderInfoResource.get_order_by_id(orderid, pg_dict)
     else:
-        res = Response(json.dumps({"message": "same update"}), status=400, content_type="application/json")
+        res = Response(json.dumps({"message": "same orderline update"}), status=400, content_type="application/json")
     return res
 
 
 @app.route("/order/<int:orderid>", methods=["DELETE"])
 def delete_order_by_id(orderid):
-    exist = OrderInfoResource.get_order_by_id(orderid)
+    _, _, pg_dict = wrap_pg_dict(enable=False)
+    exist, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
     if not exist:
         return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     success = OrderInfoResource.delete_order_by_id(orderid)
@@ -137,7 +150,9 @@ def delete_order_by_id(orderid):
 
 @app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["DELETE"])
 def delete_orderline_by_id(orderid, lineid):
-    ret_line = OrderInfoResource.get_order_by_id(orderid)["orderline"]
+    _, _, pg_dict = wrap_pg_dict(enable=False)
+    orderinfo, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+    ret_line = orderinfo["orderline"]
     lineid_list = []
     for line in ret_line:
         lineid_list.append(line["lineid"])
