@@ -37,6 +37,10 @@ def add_order_new():
 @app.route("/order/<int:orderid>/orderline", methods=["POST"])
 def add_orderline_item(orderid):
     data = json.loads(request.data)
+    _, _, pg_dict = wrap_pg_dict(enable=False)
+    exist, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+    if not exist:
+        return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     new_lineid = OrderInfoResource.add_orderline_item(
         orderid=orderid,
         itemid=data["itemid"],
