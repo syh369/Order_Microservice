@@ -126,6 +126,7 @@ def update_order_by_id(orderid):
     if success:
         _, _, pg_dict = wrap_pg_dict(enable=False)
         res, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+        res = res['orderinfo']
     else:
         res = Response(json.dumps({"message": "same order update"}), status=400, content_type="application/json")
     return res
@@ -136,6 +137,8 @@ def update_orderline_by_id(orderid, lineid):
     new_data = json.loads(request.data)
     _, _, pg_dict = wrap_pg_dict(enable=False)
     exist, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+    if not exist:
+        return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
     orderline = exist["orderline"]
     print(orderline)
     lineid_list = []
@@ -146,7 +149,10 @@ def update_orderline_by_id(orderid, lineid):
     success = OrderInfoResource.update_orderline_by_id(lineid, new_data)
     if success:
         _, _, pg_dict = wrap_pg_dict(enable=False)
-        res = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+        res, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
+        for line in res['orderline']:
+            if line['lineid'] == lineid:
+                res = line
     else:
         res = Response(json.dumps({"message": "same orderline update"}), status=400, content_type="application/json")
     return res

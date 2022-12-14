@@ -601,8 +601,8 @@ Request body (specify the new values need to be updated):
 
 ```json
 {
-    "billing_info": "credit ending in 7777",
-    "shipping_info": "212E"
+    "billing_info": "credit ending in 8888",
+    "shipping_info": "212W"
 }
 ```
 
@@ -610,32 +610,12 @@ Response body (return all the attributes of the updated order):
 
 ```json
 {
-    "orderinfo": {
-        "billing_info": "credit ending in 7777",
-        "email": "ys3609@columbia.edu",
-        "order_date": "Tue, 13 Dec 2022 21:40:09 GMT",
-        "orderid": 1,
-        "shipping_info": "212E",
-        "total": 112
-    },
-    "orderline": [
-        {
-            "amount": 4,
-            "itemid": 49,
-            "lineid": 1,
-            "orderid": 1,
-            "price": 11,
-            "subtotal": 44
-        },
-        {
-            "amount": 2,
-            "itemid": 23,
-            "lineid": 2,
-            "orderid": 1,
-            "price": 77,
-            "subtotal": 154
-        }
-    ]
+    "billing_info": "credit ending in 8888",
+    "email": "ys3609@columbia.edu",
+    "order_date": "Tue, 13 Dec 2022 22:22:16 GMT",
+    "orderid": 1,
+    "shipping_info": "212W",
+    "total": 112
 }
 ```
 
@@ -647,8 +627,8 @@ Request body (using the same body to update the order):
 
 ```json
 {
-    "billing_info": "credit ending in 7777",
-    "shipping_info": "212E"
+    "billing_info": "credit ending in 8888",
+    "shipping_info": "212W"
 }
 ```
 
@@ -697,8 +677,8 @@ Request body (specify the new values need to be updated):
 
 ```json
 {
-    "amount": 4,
-    "price": 11
+    "amount": 2,
+    "price": 18
 }
 ```
 
@@ -706,32 +686,12 @@ Response body (return all the attributes of the updated order with orderlines):
 
 ```json
 {
-    "orderinfo": {
-        "billing_info": "credit ending in 1234",
-        "email": "ys3609@columbia.edu",
-        "order_date": "Tue, 13 Dec 2022 21:40:09 GMT",
-        "orderid": 1,
-        "shipping_info": "212w",
-        "total": 112
-    },
-    "orderline": [
-        {
-            "amount": 4,
-            "itemid": 49,
-            "lineid": 1,
-            "orderid": 1,
-            "price": 11,
-            "subtotal": 44
-        },
-        {
-            "amount": 2,
-            "itemid": 23,
-            "lineid": 2,
-            "orderid": 1,
-            "price": 77,
-            "subtotal": 154
-        }
-    ]
+    "amount": 2,
+    "itemid": 49,
+    "lineid": 1,
+    "orderid": 1,
+    "price": 18,
+    "subtotal": 36
 }
 ```
 
@@ -743,8 +703,8 @@ Request body (using the same body to update the orderline):
 
 ```json
 {
-    "amount": 4,
-    "price": 11
+    "amount": 2,
+    "price": 18
 }
 ```
 
@@ -760,6 +720,21 @@ Status code: 400
 
 ---
 
+```http
+PUT /order/4/orderline/1 (this order doesn't exist)
+```
+Request body: ...
+
+Response body:
+
+```json
+{
+    "message": "order not found"
+}
+```
+
+Status code: 404
+---
 ```http
 PUT /order/1/orderline/3 (this orderline doesn't exist)
 ```
