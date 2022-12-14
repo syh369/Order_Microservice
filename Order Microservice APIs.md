@@ -601,8 +601,8 @@ Request body (specify the new values need to be updated):
 
 ```json
 {
-    "billing_info": "credit ending in 8888",
-    "shipping_info": "116w"
+    "billing_info": "credit ending in 7777",
+    "shipping_info": "212E"
 }
 ```
 
@@ -614,26 +614,26 @@ Response body (return all the attributes of the updated order):
         "billing_info": "credit ending in 7777",
         "email": "ys3609@columbia.edu",
         "order_date": "Tue, 13 Dec 2022 21:40:09 GMT",
-        "orderid": 2,
+        "orderid": 1,
         "shipping_info": "212E",
-        "total": 612
+        "total": 112
     },
     "orderline": [
         {
-            "amount": 2,
-            "itemid": 12,
+            "amount": 4,
+            "itemid": 49,
             "lineid": 1,
-            "orderid": 2,
-            "price": 66,
-            "subtotal": 132
+            "orderid": 1,
+            "price": 11,
+            "subtotal": 44
         },
         {
-            "amount": 3,
-            "itemid": 64,
+            "amount": 2,
+            "itemid": 23,
             "lineid": 2,
-            "orderid": 2,
-            "price": 11,
-            "subtotal": 33
+            "orderid": 1,
+            "price": 77,
+            "subtotal": 154
         }
     ]
 }
@@ -647,8 +647,8 @@ Request body (using the same body to update the order):
 
 ```json
 {
-    "billing_info": "credit ending in 8888",
-    "shipping_info": "116w"
+    "billing_info": "credit ending in 7777",
+    "shipping_info": "212E"
 }
 ```
 
@@ -665,7 +665,7 @@ Status code: 400
 ---
 
 ```http
-PUT /order/4 (this item doesn't exist)
+PUT /order/4 (this order doesn't exist)
 ```
 
 Request body: ...
