@@ -583,39 +583,59 @@ Status code: 404
 
 ## PUT
 
-### PUT /items/\<int: item_id\>
+### PUT /order/\<int: orderid\>
 
 ```http
-PUT /items/<int:item_id>
+PUT /order/<int:orderid>
 ```
 
-PUT/UPDATE an item by its `id`. In the request body, specify the new values of attributes among `name`, `description`, `item_price`, `image_url`, `stock`
+PUT/UPDATE an order by its `orderid`. In the request body, specify the new values of attributes among `billing_info`, `shipping_info`, `total`
 
 Example:
 
 ```http
-PUT /items/5
+PUT /order/1
 ```
 
 Request body (specify the new values need to be updated):
 
 ```json
 {
-    "stock": 4,
-    "item_price":30
+    "billing_info": "credit ending in 8888",
+    "shipping_info": "116w"
 }
 ```
 
-Response body (return all the attributes of the updated item):
+Response body (return all the attributes of the updated order):
 
 ```json
 {
-    "description": "Eggs pack, 12 count",
-    "id": 5,
-    "image_url": null,
-    "item_price": 30.0,
-    "name": "Eggs Brown Large Grade A, 12 Count",
-    "stock": 4
+    "orderinfo": {
+        "billing_info": "credit ending in 7777",
+        "email": "ys3609@columbia.edu",
+        "order_date": "Tue, 13 Dec 2022 21:40:09 GMT",
+        "orderid": 2,
+        "shipping_info": "212E",
+        "total": 612
+    },
+    "orderline": [
+        {
+            "amount": 2,
+            "itemid": 12,
+            "lineid": 1,
+            "orderid": 2,
+            "price": 66,
+            "subtotal": 132
+        },
+        {
+            "amount": 3,
+            "itemid": 64,
+            "lineid": 2,
+            "orderid": 2,
+            "price": 11,
+            "subtotal": 33
+        }
+    ]
 }
 ```
 
@@ -623,12 +643,12 @@ Status code: 200
 
 ---
 
-Request body (using the same body to update the item):
+Request body (using the same body to update the order):
 
 ```json
 {
-    "stock": 4,
-    "item_price":30
+    "billing_info": "credit ending in 8888",
+    "shipping_info": "116w"
 }
 ```
 
@@ -636,7 +656,7 @@ Response body:
 
 ```json
 {
-    "message": "same update"
+    "message": "same order update"
 }
 ```
 
@@ -645,7 +665,7 @@ Status code: 400
 ---
 
 ```http
-PUT /items/25 (this item doesn't exist)
+PUT /order/4 (this item doesn't exist)
 ```
 
 Request body: ...
@@ -654,7 +674,103 @@ Response body:
 
 ```json
 {
-    "message": "item not found"
+    "message": "order not found"
+}
+```
+
+Status code: 404
+
+### PUT /order/\<int: orderid\>/orderline/\<int: lineid\>
+
+```http
+PUT /order/<int:orderid>/orderline/<int:lineid>
+```
+
+PUT/UPDATE an orderline by its `orderid` and `lineid`. In the request body, specify the new values of attributes among `amount`, `itemid`, `price`
+
+Example:
+```http
+PUT /order/1/orderline/1
+```
+
+Request body (specify the new values need to be updated):
+
+```json
+{
+    "amount": 4,
+    "price": 11
+}
+```
+
+Response body (return all the attributes of the updated order with orderlines):
+
+```json
+{
+    "orderinfo": {
+        "billing_info": "credit ending in 1234",
+        "email": "ys3609@columbia.edu",
+        "order_date": "Tue, 13 Dec 2022 21:40:09 GMT",
+        "orderid": 1,
+        "shipping_info": "212w",
+        "total": 112
+    },
+    "orderline": [
+        {
+            "amount": 4,
+            "itemid": 49,
+            "lineid": 1,
+            "orderid": 1,
+            "price": 11,
+            "subtotal": 44
+        },
+        {
+            "amount": 2,
+            "itemid": 23,
+            "lineid": 2,
+            "orderid": 1,
+            "price": 77,
+            "subtotal": 154
+        }
+    ]
+}
+```
+
+Status code: 200
+
+---
+
+Request body (using the same body to update the orderline):
+
+```json
+{
+    "amount": 4,
+    "price": 11
+}
+```
+
+Response body:
+
+```json
+{
+    "message": "same orderline update"
+}
+```
+
+Status code: 400
+
+---
+
+```http
+PUT /order/1/orderline/3 (this orderline doesn't exist)
+```
+
+Request body: ...
+
+Response body:
+
+```json
+{
+    "message": "orderline not found"
 }
 ```
 
