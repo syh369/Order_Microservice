@@ -48,6 +48,7 @@ def add_orderline_item(orderid):
         amount=data["amount"]
     )
     if new_lineid:
+        OrderInfoResource.update_order_total(orderid)
         _, _, pg_dict = wrap_pg_dict(enable=False)
         orderinfo, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
         orderline = orderinfo["orderline"]
@@ -146,8 +147,9 @@ def update_orderline_by_id(orderid, lineid):
         lineid_list.append(line["lineid"])
     if lineid not in lineid_list:
         return Response(json.dumps({"message": "orderline not found"}), status=404, content_type="application/json")
-    success = OrderInfoResource.update_orderline_by_id(lineid, new_data)
+    success = OrderInfoResource.update_orderline_by_id(orderid, lineid, new_data)
     if success:
+        OrderInfoResource.update_order_total(orderid)
         _, _, pg_dict = wrap_pg_dict(enable=False)
         res, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
         for line in res['orderline']:
@@ -185,14 +187,13 @@ def delete_orderline_by_id(orderid, lineid):
         return Response(json.dumps({"message": "orderline not found"}), status=404, content_type="application/json")
     success = OrderInfoResource.delete_orderline_by_id(orderid, lineid)
     if success:
+        OrderInfoResource.update_order_total(orderid)
         rsp = Response(json.dumps({"message": "orderline deletion successful"}), status=200,
                        content_type="application/json")
     else:
         rsp = Response(json.dumps({"message": "orderline deletion failed"}), status=500,
                        content_type="application/json")
     return rsp
-    # if not lineid in ret_line["lineid"]:
-    #   return Response(json.dumps({"message": "order not found"}), status=404, content_type="application/json")
 
 
 '''

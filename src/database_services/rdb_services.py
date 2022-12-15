@@ -205,6 +205,36 @@ class RDBService:
 
         return row_affected
 
+    @classmethod
+    def update_by_value_2(cls, db_schema, table_name, column_name1, value1, column_name2, value2
+                          , update_columns: list):
+        """
+        :param column_name:
+        :param db_schema:
+        :param table_name:
+        :param value: the matched attribute's value
+        :param update_columns: the [(k,v)...] list
+        :return:
+        """
+        conn = cls._get_db_connection()
+        cur = conn.cursor()
+        value = [value1, value2]
+        li = []
+        for k, v in update_columns:
+            li.append(f"{k}='{v}'")
+
+        sql = " UPDATE " + db_schema + "." + table_name + " SET " + ", ".join(li) +\
+              " WHERE " + column_name1 + "=%s AND " + column_name2 + "=%s"
+        print("Update Orderline SQL Statement = " + cur.mogrify(sql, value))
+
+        cur.execute(sql, args=value)
+        conn.commit()
+        row_affected = cur.rowcount
+        print("row_affected:", row_affected)
+        conn.close()
+
+        return row_affected
+
     @staticmethod
     def _get_where_clause_args(template: dict):
         terms = []
@@ -266,6 +296,30 @@ class RDBService:
         conn.close()
 
         return res
+
+    @classmethod
+    def update_order_total(cls, db_schema, table_name1, table_name2, orderid):
+        conn = cls._get_db_connection()
+        cur = conn.cursor()
+
+        sql1 = "select sum(subtotal) as total from " + db_schema + "." + table_name1 + " where "+\
+            "orderid = %s"
+        #print("SQL Statement = " + cur.mogrify(sql1, orderid))
+        cur.execute(sql1, args=orderid)
+        res = cur.fetchone()
+        total = [res['total'], orderid]
+        sql2 = "update "+ db_schema + "." + table_name2 + " set total = %s where orderid = %s"
+        print("SQL 2 Statement = " + cur.mogrify(sql2, total))
+        cur.execute(sql2, args=total)
+        conn.commit()
+        row_affected = cur.rowcount
+        print("row_affected:", row_affected)
+        conn.close()
+
+        return row_affected
+
+
+
 
     """
     # def put_by_template(db_schema, table_name, template, id, name, field_list):

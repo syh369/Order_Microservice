@@ -10,14 +10,13 @@ from database_services.rdb_services import RDBService
 
 
 class OrderInfoResource:
-
     @classmethod
-    def add_order_new(cls, email, shipping_info, billing_info):
+    def add_order_new(cls, email, shipping_info, billing_info, total):
         res = RDBService.add_by_prefix(
             db_schema="f22_orders",
             table_name="order",
-            column_names=["email", "shipping_info", "billing_info"],
-            values=[email, shipping_info, billing_info]
+            column_names=["email", "shipping_info", "billing_info", "total"],
+            values=[email, shipping_info, billing_info, total]
         )
         return res
 
@@ -30,6 +29,13 @@ class OrderInfoResource:
             # calculate subtotal by given price and amount
             values=[orderid, itemid, price, amount]
         )
+        # total = ('total', price*amount)
+        # total_info = [total]
+        # _ = RDBService.update_by_value(db_schema="f22_orders",
+        #                                           table_name="order",
+        #                                           column_name="orderid",
+        #                                           value=orderid,
+        #                                           update_columns=total_info)
         return new_lineid
 
     @classmethod
@@ -79,16 +85,18 @@ class OrderInfoResource:
             return True
 
     @classmethod
-    def update_orderline_by_id(cls, lineid, new_data: dict):
+    def update_orderline_by_id(cls, orderid, lineid, new_data: dict):
         set_orderline_list = []
         for k, v in new_data.items():
             set_orderline_list.append((k, v))
         row_affected = 0
         if set_orderline_list:
-            row_affected = RDBService.update_by_value(db_schema="f22_orders",
+            row_affected = RDBService.update_by_value_2(db_schema="f22_orders",
                                                       table_name="orderline",
-                                                      column_name="lineid",
-                                                      value=lineid,
+                                                      column_name1="lineid",
+                                                      column_name2="orderid",
+                                                      value1=lineid,
+                                                      value2=orderid,
                                                       update_columns=set_orderline_list)
         if row_affected == 0:
             return False
@@ -105,6 +113,21 @@ class OrderInfoResource:
         id_list = [orderid, lineid]
         res = RDBService.delete_by_value_single_table("f22_orders", "orderline", "orderid", "lineid", id_list)
         return res
+
+    @classmethod
+    def update_order_total(cls, orderid):
+        row = RDBService.update_order_total(db_schema = 'f22_orders',
+                                            table_name1 = 'orderline',
+                                            table_name2 = 'order',
+                                            orderid = orderid)
+        if row == 0:
+            return False
+        else:
+            return True
+
+    #@classmethod
+    # def update_total(cls, orderid, lineid):
+
 
 
 '''

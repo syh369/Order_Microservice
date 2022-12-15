@@ -22,7 +22,6 @@ def minus_stock(item_id, amount):
     rsp = requests.put(url=stock_url, json=update_json)
     return True
 
-
 if __name__ == "__main__":
     # # json.dumps({'4': 5, '6': 7}, sort_keys=True, indent=4)
     # data = json.dumps(r.json(), sort_keys=True, indent=4)

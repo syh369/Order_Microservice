@@ -579,8 +579,6 @@ Status code: 404
 
 
 
-# **Continue here..**
-
 ## PUT
 
 ### PUT /order/\<int: orderid\>
