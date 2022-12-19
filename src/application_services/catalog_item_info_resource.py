@@ -6,7 +6,7 @@
 PATCH item info: update/<item_id>
 """
 
-from database_services.rdb_services import RDBService
+from src.database_services.rdb_services import RDBService
 
 
 class OrderInfoResource:

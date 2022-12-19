@@ -1,7 +1,7 @@
 import pymysql
 import logging
 
-from middleware.context import Context as Context
+from src.middleware.context import Context as Context
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
