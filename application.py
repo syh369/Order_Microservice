@@ -3,10 +3,10 @@ from flask import Flask, Response, request, jsonify, json, url_for
 from application_services.catalog_item_info_resource import OrderInfoResource
 from utils import wrap_pagination, wrap_link, wrap_pg_dict
 
-app = Flask(__name__)
+application = Flask(__name__)
 
 
-@app.route("/", methods=["GET"])
+@application.route("/", methods=["GET"])
 def index():
     context = {
         "get_order_by_id": "/order/<int:orderid>",
@@ -21,7 +21,7 @@ def index():
     return jsonify(context)
 
 
-@app.route("/order", methods=["POST"])
+@application.route("/order", methods=["POST"])
 def add_order_new():
     data = json.loads(request.data)
     new_order_id = OrderInfoResource.add_order_new(
@@ -39,7 +39,7 @@ def add_order_new():
     return rsp
 
 
-@app.route("/order/<int:orderid>/orderline", methods=["POST"])
+@application.route("/order/<int:orderid>/orderline", methods=["POST"])
 def add_orderline_item(orderid):
     data = json.loads(request.data)
     _, _, pg_dict = wrap_pg_dict(enable=False)
@@ -65,7 +65,7 @@ def add_orderline_item(orderid):
                         status=500, content_type="application/json")
 
 
-@app.route("/order/<int:orderid>", methods=["GET"])
+@application.route("/order/<int:orderid>", methods=["GET"])
 def get_order_by_id(orderid):
     page, pagesize = request.args.get("page", type=int), request.args.get("pagesize", type=int)
     page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
@@ -88,7 +88,7 @@ def get_order_by_id(orderid):
 
 
 # TODO: fix this, check the return of get_order_by_id
-@app.route("/order/<int:orderid>/orderline/<int:lineid>")
+@application.route("/order/<int:orderid>/orderline/<int:lineid>")
 def get_orderline_by_id(orderid, lineid):
     _, _, pg_dict = wrap_pg_dict(enable=False)
     orderinfo, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
@@ -105,7 +105,7 @@ def get_orderline_by_id(orderid, lineid):
     return Response(json.dumps({"message": "order line not found"}), status=404, content_type="application/json")
 
 
-@app.route("/order/<string:email>", methods=["GET"])
+@application.route("/order/<string:email>", methods=["GET"])
 def get_order_by_email(email):
     page, pagesize = request.args.get("page", type=int), request.args.get("pagesize", type=int)
     page, pagesize, pg_dict = wrap_pg_dict(page=page, pagesize=pagesize, enable=True)
@@ -121,7 +121,7 @@ def get_order_by_email(email):
     return rsp
 
 
-@app.route("/order/<int:orderid>", methods=["PUT"])
+@application.route("/order/<int:orderid>", methods=["PUT"])
 def update_order_by_id(orderid):
     new_data = json.loads(request.data)
     _, _, pg_dict = wrap_pg_dict(enable=False)
@@ -138,7 +138,7 @@ def update_order_by_id(orderid):
     return res
 
 
-@app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["PUT"])
+@application.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["PUT"])
 def update_orderline_by_id(orderid, lineid):
     new_data = json.loads(request.data)
     _, _, pg_dict = wrap_pg_dict(enable=False)
@@ -165,7 +165,7 @@ def update_orderline_by_id(orderid, lineid):
     return res
 
 
-@app.route("/order/<int:orderid>", methods=["DELETE"])
+@application.route("/order/<int:orderid>", methods=["DELETE"])
 def delete_order_by_id(orderid):
     _, _, pg_dict = wrap_pg_dict(enable=False)
     exist, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
@@ -180,7 +180,7 @@ def delete_order_by_id(orderid):
     return rsp
 
 
-@app.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["DELETE"])
+@application.route("/order/<int:orderid>/orderline/<int:lineid>", methods=["DELETE"])
 def delete_orderline_by_id(orderid, lineid):
     _, _, pg_dict = wrap_pg_dict(enable=False)
     orderinfo, _ = OrderInfoResource.get_order_by_id(orderid, pg_dict)
@@ -205,5 +205,5 @@ def delete_orderline_by_id(orderid, lineid):
 '''
 
 if __name__ == "__main__":
-    app.debug = True
-    app.run(host="0.0.0.0", port=5013)
+    application.debug = True
+    application.run(host="0.0.0.0", port=5013)
