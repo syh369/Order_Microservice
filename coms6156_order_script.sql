@@ -8,7 +8,7 @@ CREATE TABLE f22_orders.order
     orderid         int(8) not null unique auto_increment,
     email           varchar(64) not null,
     order_date      TIMESTAMP not null DEFAULT CURRENT_TIMESTAMP COMMENT 'order_created_date',
-    total           int(8) DEFAULT 0,
+    total           double DEFAULT 0,
     shipping_info   varchar(64) not null,
     billing_info    varchar(64) not null,
     constraint order_pk primary key (orderid)
@@ -19,9 +19,9 @@ CREATE TABLE f22_orders.orderline
     lineid      int(8) not null,
     orderid     int(8) not null,
     itemid      int(8) not null,
-    price       int(8),
+    price       double,
     amount      int(8),
-    subtotal    int(8),
+    subtotal    double,
 
     constraint orderline_fk
         foreign key (orderid) references f22_orders.order(orderid)
