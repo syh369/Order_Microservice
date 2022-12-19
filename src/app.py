@@ -10,7 +10,12 @@ app = Flask(__name__)
 def index():
     context = {
         "get_order_by_id": "/order/<int:orderid>",
+        "get_orderline_by_id": "/order/<int:orderid>/orderline/<int:lineid>",
         "get_order_by_email": "/order/<str:email>",
+        "add_order_new": "/order",
+        "add_orderline_item": "/order/<int:orderid>/orderline",
+        "update_order_by_id": "/order/<int:orderid>",
+        "update_orderline_by_id": "/order/<int:orderid>/orderline/<int:lineid>",
         "delete_order_by_id": "/order/<int:order_id>",
     }
     return jsonify(context)
