@@ -1,10 +1,11 @@
 from flask import Flask, Response, request, jsonify, json, url_for
-
+from flask_cors import CORS
 from src.application_services.Order_Info_Resource import OrderInfoResource
 from src.utils import wrap_pagination, wrap_link, wrap_pg_dict
 
 application = Flask(__name__)
 CORS(application)
+
 
 @application.route("/", methods=["GET"])
 def index():
@@ -100,7 +101,8 @@ def get_orderline_by_id(orderid, lineid):
         if line["lineid"] == lineid:
             line["links"] = list()
             line["links"].append(wrap_link(url_for("get_order_by_id", orderid=line["orderid"]), "order"))
-            line["links"].append(wrap_link(url_for("get_orderline_by_id", orderid=line["orderid"], lineid=line["lineid"]), "self"))
+            line["links"].append(
+                wrap_link(url_for("get_orderline_by_id", orderid=line["orderid"], lineid=line["lineid"]), "self"))
             return jsonify(line)
     return Response(json.dumps({"message": "order line not found"}), status=404, content_type="application/json")
 
