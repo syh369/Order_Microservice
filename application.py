@@ -4,7 +4,7 @@ from src.application_services.Order_Info_Resource import OrderInfoResource
 from src.utils import wrap_pagination, wrap_link, wrap_pg_dict
 
 application = Flask(__name__)
-
+CORS(application)
 
 @application.route("/", methods=["GET"])
 def index():
