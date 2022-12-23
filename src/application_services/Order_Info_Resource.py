@@ -11,12 +11,12 @@ from src.database_services.rdb_services import RDBService
 
 class OrderInfoResource:
     @classmethod
-    def add_order_new(cls, email, shipping_info, billing_info, total):
+    def add_order_new(cls, email, shipping_info, billing_info):
         res = RDBService.add_by_prefix(
             db_schema="f22_orders",
             table_name="order",
-            column_names=["email", "shipping_info", "billing_info", "total"],
-            values=[email, shipping_info, billing_info, total]
+            column_names=["email", "shipping_info", "billing_info"],
+            values=[email, shipping_info, billing_info]
         )
         return res
 

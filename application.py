@@ -1,6 +1,6 @@
 from flask import Flask, Response, request, jsonify, json, url_for
 
-from src.application_services.catalog_item_info_resource import OrderInfoResource
+from src.application_services.Order_Info_Resource import OrderInfoResource
 from src.utils import wrap_pagination, wrap_link, wrap_pg_dict
 
 application = Flask(__name__)
